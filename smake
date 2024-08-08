@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import os
-import argparse
 import shutil
 import pathlib
 import signal
@@ -13,30 +12,27 @@ def signal_handler(sig, frame):
     sys.exit(0)
 signal.signal(signal.SIGINT, signal_handler)
 HERE = os.path.realpath(os.path.dirname(__file__))
-
-parser = argparse.ArgumentParser(add_help=False)
-parser.add_argument('-i' , '--input' , type=str , help='''input the super.img that is going to be modifed, if super.img is sparse its going to temporarily be unsparsed''')
-parser.add_argument('-o' , '--output', help="Directs the output to a name of your choice")
-parser.add_argument('-s' , '--SLOT' , type=int , help="number of slots on the device can only be 1 (A) or 2 (A/B)")
-args = parser.parse_args()
-TempDIR = str(args.input)
+if len(sys.argv) != 4:
+    print("Usage: smake <input folder> <output.img> <slot>")
+    exit(1)
+TempDIR = str(sys.argv[1])
 re_src = []
 re_dest = []
 # err check
 def check():
     err = ""
     try:
-        if args.SLOT == 1 or args.SLOT == 2:
+        if int(sys.argv[3]) == 1 or int(sys.argv[3]) == 2:
             pass
         else:
-            print("Invalid Slot number ({slot})".format(slot=args.SLOT))
+            print("Invalid Slot number ({slot})".format(slot=sys.argv[3]))
             err += " &SLOT"
         # if args.input.name.endswith(".img"):
         #     pass
         # else:
         #     print("Invalid Format at INPUT please use .img file")
         #     err += " &InvalidFormatINPUT"
-        if args.output.endswith(".img"):
+        if sys.argv[2].endswith(".img"):
             pass
         else:
             print("Invalid Format at INPUT please use .img file")
@@ -53,7 +49,7 @@ def check():
 
 def lpunpack():
     #!/usr/bin/python  # -*- coding: latin-1 -*-
-    os.system("lpunpack {superimg} {tempdir}".format(superimg=args.input.name, tempdir=TempDIR , dir=HERE))
+    os.system("lpunpack {superimg} {tempdir}".format(superimg=sys.argv[2], tempdir=TempDIR , dir=HERE))
 def del_replacement():
     while True:
         for i in range(len(re_src)):
@@ -73,10 +69,10 @@ def printsize():
     presize = 0
     size = 0
     while True:
-        if os.path.isfile(args.output):
-            size= os.path.getsize(args.output)
+        if os.path.isfile(sys.argv[2]):
+            size= os.path.getsize(sys.argv[2])
             os.system("clear")
-            print(f"{args.output}: {size} bytes | speed {round((size - presize)/(1024*1024),2)} MB/s")
+            print(f"{sys.argv[2]}: {size} bytes | speed {round((size - presize)/(1024*1024),2)} MB/s")
             presize = size
         time.sleep(3)
 def lpmake_xiaomi_super():
@@ -137,7 +133,7 @@ def lpmake_xiaomi_super():
     makep+= f"--partition mi_ext_a:readonly:{os.path.getsize(os.path.join(TempDIR , 'mi_ext_a.img'))}:xiaomi_dynamic_partitions_a --image mi_ext_a={TempDIR}/mi_ext_a.img "
     makep+= f"--partition mi_ext_b:readonly:0:xiaomi_dynamic_partitions_b " #8 
 
-    makep+= f"--output {args.output} "
+    makep+= f"--output {sys.argv[2]} "
     my_thread = threading.Thread(target=printsize)
     my_thread.daemon = True
     my_thread.start()
@@ -248,7 +244,7 @@ def IMGsizeCALC(): # calculate size
 
 # lpmake
 def lpmake(filesize,devicesize , metadatasize):
-    lpmake_args = "--group main:{filesize} --device-size={devicesize}".format(filesize=filesize,devicesize=devicesize) + " --metadata-slots={slot}".format(slot=args.SLOT) + " --output {output}".format(output=args.output) + " --metadata-size {metadatasize}".format(metadatasize=metadatasize)
+    lpmake_args = "--group main:{filesize} --device-size={devicesize}".format(filesize=filesize,devicesize=devicesize) + " --metadata-slots={slot}".format(slot=int(sys.argv[3])) + " --output {output}".format(output=sys.argv[2]) + " --metadata-size {metadatasize}".format(metadatasize=metadatasize)
     sparse = input("make sparse (flashable with fastboot) ? (Y/n): ")
     if sparse == "Y" or sparse == "y" or sparse == "yes" or sparse == "Yes" or sparse == "": # just making sure
         lpmake_args += " --sparse"
@@ -312,7 +308,7 @@ def main():
         print("Invalid Number skipping ..!")
     
     try:
-        mdsize = input("metadata size in bytes must be evenly divisible by 512 default={metadatasize}: ")
+        mdsize = input(f"metadata size in bytes must be evenly divisible by 512 default={metadatasize}: ")
         if mdsize != "" and testdvi512(int(dvsize)):
             metadatasize = int(mdsize)
     except ValueError:
