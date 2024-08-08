@@ -1,0 +1,331 @@
+#!/usr/bin/env python3
+
+import os
+import argparse
+import shutil
+import pathlib
+import signal
+import sys
+import threading
+import time
+def signal_handler(sig, frame):
+    print('\nYou pressed Ctrl+C!')
+    sys.exit(0)
+signal.signal(signal.SIGINT, signal_handler)
+HERE = os.path.realpath(os.path.dirname(__file__))
+
+parser = argparse.ArgumentParser(add_help=False)
+parser.add_argument('-i' , '--input' , type=str , help='''input the super.img that is going to be modifed, if super.img is sparse its going to temporarily be unsparsed''')
+parser.add_argument('-o' , '--output', help="Directs the output to a name of your choice")
+parser.add_argument('-s' , '--SLOT' , type=int , help="number of slots on the device can only be 1 (A) or 2 (A/B)")
+args = parser.parse_args()
+TempDIR = str(args.input)
+re_src = []
+re_dest = []
+# err check
+def check():
+    err = ""
+    try:
+        if args.SLOT == 1 or args.SLOT == 2:
+            pass
+        else:
+            print("Invalid Slot number ({slot})".format(slot=args.SLOT))
+            err += " &SLOT"
+        # if args.input.name.endswith(".img"):
+        #     pass
+        # else:
+        #     print("Invalid Format at INPUT please use .img file")
+        #     err += " &InvalidFormatINPUT"
+        if args.output.endswith(".img"):
+            pass
+        else:
+            print("Invalid Format at INPUT please use .img file")
+            err += " &InvalidFormatOUTPUT"
+        if err == "":
+            err = "OK"
+    except ValueError:
+        err = "Flag ValueError"
+    except AttributeError:
+        err = "Flag AttributeError"
+    return err
+
+# unpack / replacing
+
+def lpunpack():
+    #!/usr/bin/python  # -*- coding: latin-1 -*-
+    os.system("lpunpack {superimg} {tempdir}".format(superimg=args.input.name, tempdir=TempDIR , dir=HERE))
+def del_replacement():
+    while True:
+        for i in range(len(re_src)):
+            print(f"{i}. {re_dest[i]}")
+        print("type exit to exit")
+        inputs = input("select: ")
+        if inputs == "exit": 
+            return
+        for i in range(len(re_src)):
+            if inputs == str(i):
+                del re_src[i]
+                del re_dest[i]
+                continue
+            else:
+                continue
+def printsize():
+    presize = 0
+    size = 0
+    while True:
+        if os.path.isfile(args.output):
+            size= os.path.getsize(args.output)
+            os.system("clear")
+            print(f"{args.output}: {size} bytes | speed {round((size - presize)/(1024*1024),2)} MB/s")
+            presize = size
+        time.sleep(3)
+def lpmake_xiaomi_super():
+    con = input("please rename the image exactly, continue ? (Y/n):")
+    if con == "Y" or con == "y" or con == "yes" or con == "Yes" or con == "":
+        pass
+    else:
+        return
+    for i in range(len(re_src)):
+        print(f"copying {re_src[i]} to {re_dest[i]}")
+        shutil.copy(re_src[i] , re_dest[i])
+    metadatasize = 65536
+    devicesize = IMGsizeCALC()
+    filesize = devicesize
+    print("============================")
+    try:
+        dvsize = input("file size (super.img size) in bytes must be evenly divisible by 512, default ({devicesize}) bytes: ".format(devicesize=devicesize))
+        if dvsize != "" and testdvi512(int(dvsize)):
+            filesize = int(dvsize)
+    except ValueError:
+        print("Invalid Number skipping ..!")
+    
+    try:
+        mdsize = input("metadata size in bytes must be evenly divisible by 512 default={metadatasize}bytes: ".format(metadatasize=metadatasize))
+        if mdsize != "" and testdvi512(int(dvsize)):
+            metadatasize = int(mdsize)
+    except ValueError:
+        print("Invalid Number skipping ..!")
+    
+    makep = f"{HERE}/bin/lpmake "
+    makep+= f"--metadata-size {metadatasize} "
+    makep+= f"--super-name super --metadata-slots 1 --virtual-ab "
+    makep+= f"--device super:{filesize} "
+    makep+= f"--group xiaomi_dynamic_partitions_a:{filesize} "
+    makep+= f"--group xiaomi_dynamic_partitions_b:{filesize} "
+
+    makep+= f"--partition odm_a:readonly:{os.path.getsize(os.path.join(TempDIR , 'odm_a.img'))}:xiaomi_dynamic_partitions_a --image odm_a={TempDIR}/odm_a.img "
+    makep+= f"--partition odm_b:readonly:0:xiaomi_dynamic_partitions_b " #1
+
+    makep+= f"--partition product_a:readonly:{os.path.getsize(os.path.join(TempDIR , 'product_a.img'))}:xiaomi_dynamic_partitions_a --image product_a={TempDIR}/product_a.img "
+    makep+= f"--partition product_b:readonly:0:xiaomi_dynamic_partitions_b " #2
+
+    makep+= f"--partition system_a:readonly:{os.path.getsize(os.path.join(TempDIR , 'system_a.img'))}:xiaomi_dynamic_partitions_a --image system_a={TempDIR}/system_a.img "
+    makep+= f"--partition system_b:readonly:0:xiaomi_dynamic_partitions_b " #3
+
+    makep+= f"--partition system_dlkm_a:readonly:{os.path.getsize(os.path.join(TempDIR , 'system_dlkm_a.img'))}:xiaomi_dynamic_partitions_a --image system_dlkm_a={TempDIR}/system_dlkm_a.img "
+    makep+= f"--partition system_dlkm_b:readonly:0:xiaomi_dynamic_partitions_b " #4
+
+    makep+= f"--partition system_ext_a:readonly:{os.path.getsize(os.path.join(TempDIR , 'system_ext_a.img'))}:xiaomi_dynamic_partitions_a --image system_ext_a={TempDIR}/system_ext_a.img "
+    makep+= f"--partition system_ext_b:readonly:0:xiaomi_dynamic_partitions_b " #5
+
+    makep+= f"--partition vendor_a:readonly:{os.path.getsize(os.path.join(TempDIR , 'vendor_a.img'))}:xiaomi_dynamic_partitions_a --image vendor_a={TempDIR}/vendor_a.img "
+    makep+= f"--partition vendor_b:readonly:0:xiaomi_dynamic_partitions_b " #6
+
+    makep+= f"--partition vendor_dlkm_a:readonly:{os.path.getsize(os.path.join(TempDIR , 'vendor_dlkm_a.img'))}:xiaomi_dynamic_partitions_a --image vendor_dlkm_a={TempDIR}/vendor_dlkm_a.img "
+    makep+= f"--partition vendor_dlkm_b:readonly:0:xiaomi_dynamic_partitions_b " #7
+
+    makep+= f"--partition mi_ext_a:readonly:{os.path.getsize(os.path.join(TempDIR , 'mi_ext_a.img'))}:xiaomi_dynamic_partitions_a --image mi_ext_a={TempDIR}/mi_ext_a.img "
+    makep+= f"--partition mi_ext_b:readonly:0:xiaomi_dynamic_partitions_b " #8 
+
+    makep+= f"--output {args.output} "
+    my_thread = threading.Thread(target=printsize)
+    my_thread.daemon = True
+    my_thread.start()
+    err = os.system(makep)
+    print("done !!!")
+    sys.exit(err)
+def IMGmanipulation(): # choose an img file to be replaced
+    while (True):
+        TempImgList = os.listdir(TempDIR)
+        i = 0
+        print("Chosse Operation:")
+        print("1. delete Partition")
+        print("2. replace Partition")
+        print("3. add partition")
+        print("4. create super")
+        print("5. delete replacement")
+        print("6. create super xiaomi")
+        Operation = input("select: ")
+        if Operation == "4":
+            return
+        if Operation == "5":
+            del_replacement()
+        if Operation == "6":
+            lpmake_xiaomi_super()
+        if Operation == "2" or Operation == "1":
+            for img in TempImgList:
+                if img.endswith(".img"):
+                    print("option number " + str(i) + " " + TempImgList[i] + " size of (" + str(os.path.getsize(TempDIR + "/" + img)) + ") bytes")
+                i += 1
+            try:
+                imgnum = "0"
+                if Operation == "2" or Operation == "1":
+                    imgnum = input("Please Choose: ")
+                if int(imgnum) <= i - 1 or Operation == "3":
+                    while (True):
+                        try:
+                            if Operation == "1": # just making sure
+                                os.remove(TempDIR + "/" + TempImgList[int(imgnum)])
+                                print("Partition Deleted!")
+                                break
+                            elif Operation == "2":
+                                try:
+                                    while(True):
+                                        replacmentpath = input("Please Input Path To Replacment Partition:\n")
+                                        replacmentpath = str(pathlib.Path(replacmentpath).absolute())
+                                        if replacmentpath.endswith(".img"):
+                                            redo = input("Are you sure this is the path to file (Y/n): ")
+                                            if redo == "Y" or redo == "y" or redo == "yes" or redo == "Yes" or redo == "": # just making sure
+                                                # shutil.copy(replacmentpath , TempDIR + "/" + TempImgList[int(imgnum)])
+                                                for i in range(len(re_src)):
+                                                    if re_src[i] == replacmentpath:
+                                                        print("Path already exist!!!")
+                                                        continue
+                                                re_dest.append(TempDIR + "/" + TempImgList[int(imgnum)])
+                                                re_src.append(replacmentpath)
+                                                print("saved path!")
+                                                break
+                                        elif replacmentpath.endswith(" "):  # sometimes people tap space it ruins it and it can and will get confusing
+                                            print("Path Ends With Space!!")
+                                        else:
+                                            print("Please Input a Valid Path to a IMG File!") 
+                                    break
+                                except ValueError:
+                                    print("Please Input a Valid Path!")
+                                except AttributeError:
+                                    print("How did you even manage to get AttributeError, this is here just incase !?")
+                            elif Operation == "3":
+                                name = ""
+                                size = 0
+                                while (True):
+                                    try:
+                                        if name == "":
+                                            name = input("Input Partition Name: ")
+                                        size = input("Input Partition Size: ")
+                                        print("name: " + name)
+                                        print("size: " + size)
+                                        redo = input("Is This Correct? (Y/n): ")
+                                        if redo == "Y" or redo == "y" or redo == "yes" or redo == "Yes" or redo == "": # just making sure
+                                            break
+                                        name = ""
+                                    except ValueError:
+                                        print("Please Put a Valid Number!")
+                                os.system("dd if=/dev/zero of={tempdir}/{name}.img bs=1 count={size}".format(tempdir=TempDIR , name=name , size=size))
+                                break
+                        except ValueError:
+                            print("Please Put a Valid Number!")
+                    # redo = input("Replace/Delete/Add another (Y/n): ")
+                    # if redo == "Y" or redo == "y" or redo == "yes" or redo == "Yes": # just making sure
+                    #     continue
+                    # return
+                else:
+                    print("Please Put a Valid Number!")
+                    continue
+            except ValueError:
+                print("Please Put a Number In!")
+
+def IMGsizeCALC(): # calculate size
+    totalsize = 5120000 # a bit of overhead
+    TempImgList = os.listdir(TempDIR)
+    i = 0
+    for img in TempImgList:
+        if img.endswith(".img"):
+            totalsize += os.path.getsize(TempDIR + "/" + img)
+        i += 1
+    reminder = totalsize % 512 # making devision by 512
+    totalsize += reminder
+    return totalsize
+
+# lpmake
+def lpmake(filesize,devicesize , metadatasize):
+    lpmake_args = "--group main:{filesize} --device-size={devicesize}".format(filesize=filesize,devicesize=devicesize) + " --metadata-slots={slot}".format(slot=args.SLOT) + " --output {output}".format(output=args.output) + " --metadata-size {metadatasize}".format(metadatasize=metadatasize)
+    sparse = input("make sparse (flashable with fastboot) ? (Y/n): ")
+    if sparse == "Y" or sparse == "y" or sparse == "yes" or sparse == "Yes" or sparse == "": # just making sure
+        lpmake_args += " --sparse"
+    
+    lpmake_args = lpmake_add_args(lpmake_args)
+    print("============================")
+    print("    using these flags:")
+    print("============================")
+    print(lpmake_args)
+    print("============================")
+    
+    return os.system("lpmake {lpargs}".format(lpargs=lpmake_args , dir=HERE))
+
+def lpmake_add_args(lpmake_args):
+    TempImgList = os.listdir(TempDIR)
+    for img in TempImgList:
+        if img.endswith(".img"):
+            lpmake_args += " --partition={name}:none:{size}".format(name=os.path.splitext(img)[0] , size=os.path.getsize(TempDIR + "/" + img))
+            if os.path.getsize(TempDIR + "/" + img) != 0:
+                lpmake_args += " --image={name}={filedir}".format(name=os.path.splitext(img)[0] , filedir=(TempDIR + "/" + img))
+    return lpmake_args
+
+def testdvi512(num):
+    if num % 512 == 0:
+        return True
+    else:
+        return False
+
+def main():
+    err = check()
+
+    if err != "OK":
+        print("error code ({error}) exiting...!".format(error=err))
+        return err
+    else:
+        print("flags successfully verified and appear to be correct, error code ({error})".format(error=err))
+    
+    print("============================")
+    # print("        unpacking...")
+    print("============================")
+    # lpunpack()
+    print("============================")
+    print("  img manipulation ")
+    print("============================")
+    
+    
+    IMGmanipulation() # IMG manipulation of selected partition
+    for i in range(len(re_src)):
+        print(f"copying {re_src[i]} to {re_dest[i]}")
+        shutil.copy(re_src[i] , re_dest[i])
+    #let user choose size
+    metadatasize = 65536
+    devicesize = IMGsizeCALC()
+    filesize = IMGsizeCALC()
+    print("============================")
+    try:
+        dvsize = input("file size (super.img size) in bytes must be evenly divisible by 512, default ({devicesize}) bytes: ".format(devicesize=devicesize))
+        if dvsize != "" and testdvi512(int(dvsize)):
+            filesize = int(dvsize)
+    except ValueError:
+        print("Invalid Number skipping ..!")
+    
+    try:
+        mdsize = input("metadata size in bytes must be evenly divisible by 512 default={metadatasize}: ")
+        if mdsize != "" and testdvi512(int(dvsize)):
+            metadatasize = int(mdsize)
+    except ValueError:
+        print("Invalid Number skipping ..!")
+    
+    #repack
+    lperr = lpmake(filesize,devicesize , metadatasize)
+    err = lperr if lperr != 0 else err # give lpmake error as external code if there was an error
+    print("============================")
+    print("        cleaning...")
+    print("============================")
+    # shutil.rmtree(TempDIR) # clean tmp dir
+    sys.exit(err)
+
+main()
+signal.pause()
