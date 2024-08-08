@@ -255,7 +255,9 @@ def lpmake(filesize,devicesize , metadatasize):
     print("============================")
     print(lpmake_args)
     print("============================")
-    
+    my_thread = threading.Thread(target=printsize)
+    my_thread.daemon = True
+    my_thread.start()
     return os.system("lpmake {lpargs}".format(lpargs=lpmake_args , dir=HERE))
 
 def lpmake_add_args(lpmake_args):
