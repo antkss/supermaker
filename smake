@@ -71,8 +71,7 @@ def printsize():
     while True:
         if os.path.isfile(sys.argv[2]):
             size= os.path.getsize(sys.argv[2])
-            # os.system("clear")
-            print("\x1B[3A")
+            os.system("clear")
             print(f"{sys.argv[2]}: {size} bytes | speed {round((size - presize)/(1024*1024),2)} MB/s")
             presize = size
         time.sleep(3)
