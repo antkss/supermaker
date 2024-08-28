@@ -7,6 +7,7 @@ import signal
 import sys
 import threading
 import time
+import random
 def signal_handler(sig, frame):
     print('\nYou pressed Ctrl+C!')
     sys.exit(0)
@@ -104,6 +105,7 @@ def lpmake_xiaomi_super():
     except ValueError:
         print("Invalid Number skipping ..!")
     
+    param = []
     makep = f"lpmake "
     makep+= f"--metadata-size {metadatasize} "
     makep+= f"--super-name super --metadata-slots 1 --virtual-ab "
@@ -111,37 +113,39 @@ def lpmake_xiaomi_super():
     makep+= f"--group xiaomi_dynamic_partitions_a:{filesize} "
     makep+= f"--group xiaomi_dynamic_partitions_b:{filesize} "
 
-    makep+= f"--partition odm_a:readonly:{os.path.getsize(os.path.join(TempDIR , 'odm_a.img'))}:xiaomi_dynamic_partitions_a --image odm_a={TempDIR}/odm_a.img "
-    makep+= f"--partition odm_b:readonly:0:xiaomi_dynamic_partitions_b " #1
+    param.append(f"--partition odm_a:readonly:{os.path.getsize(os.path.join(TempDIR , 'odm_a.img'))}:xiaomi_dynamic_partitions_a --image odm_a={TempDIR}/odm_a.img ")
+    param.append(f"--partition odm_b:readonly:0:xiaomi_dynamic_partitions_b ") #1
 
-    makep+= f"--partition product_a:readonly:{os.path.getsize(os.path.join(TempDIR , 'product_a.img'))}:xiaomi_dynamic_partitions_a --image product_a={TempDIR}/product_a.img "
-    makep+= f"--partition product_b:readonly:0:xiaomi_dynamic_partitions_b " #2
-
-    makep+= f"--partition system_a:readonly:{os.path.getsize(os.path.join(TempDIR , 'system_a.img'))}:xiaomi_dynamic_partitions_a --image system_a={TempDIR}/system_a.img "
-    makep+= f"--partition system_b:readonly:0:xiaomi_dynamic_partitions_b " #3
-
-    makep+= f"--partition system_dlkm_a:readonly:{os.path.getsize(os.path.join(TempDIR , 'system_dlkm_a.img'))}:xiaomi_dynamic_partitions_a --image system_dlkm_a={TempDIR}/system_dlkm_a.img "
-    makep+= f"--partition system_dlkm_b:readonly:0:xiaomi_dynamic_partitions_b " #4
-
-    makep+= f"--partition system_ext_a:readonly:{os.path.getsize(os.path.join(TempDIR , 'system_ext_a.img'))}:xiaomi_dynamic_partitions_a --image system_ext_a={TempDIR}/system_ext_a.img "
-    makep+= f"--partition system_ext_b:readonly:0:xiaomi_dynamic_partitions_b " #5
-
-    makep+= f"--partition vendor_a:readonly:{os.path.getsize(os.path.join(TempDIR , 'vendor_a.img'))}:xiaomi_dynamic_partitions_a --image vendor_a={TempDIR}/vendor_a.img "
-    makep+= f"--partition vendor_b:readonly:0:xiaomi_dynamic_partitions_b " #6
-
-    makep+= f"--partition vendor_dlkm_a:readonly:{os.path.getsize(os.path.join(TempDIR , 'vendor_dlkm_a.img'))}:xiaomi_dynamic_partitions_a --image vendor_dlkm_a={TempDIR}/vendor_dlkm_a.img "
-    makep+= f"--partition vendor_dlkm_b:readonly:0:xiaomi_dynamic_partitions_b " #7
-
-    makep+= f"--partition mi_ext_a:readonly:{os.path.getsize(os.path.join(TempDIR , 'mi_ext_a.img'))}:xiaomi_dynamic_partitions_a --image mi_ext_a={TempDIR}/mi_ext_a.img "
-    makep+= f"--partition mi_ext_b:readonly:0:xiaomi_dynamic_partitions_b " #8 
-
-    makep+= f"--output {sys.argv[2]} "
+    param.append(f"--partition product_a:readonly:{os.path.getsize(os.path.join(TempDIR , 'product_a.img'))}:xiaomi_dynamic_partitions_a --image product_a={TempDIR}/product_a.img ")
+    param.append(f"--partition product_b:readonly:0:xiaomi_dynamic_partitions_b ") #2
+    param.append(f"--partition system_a:readonly:{os.path.getsize(os.path.join(TempDIR , 'system_a.img'))}:xiaomi_dynamic_partitions_a --image system_a={TempDIR}/system_a.img ")
+    param.append(f"--partition system_b:readonly:0:xiaomi_dynamic_partitions_b ") #3
+    param.append(f"--partition system_dlkm_a:readonly:{os.path.getsize(os.path.join(TempDIR , 'system_dlkm_a.img'))}:xiaomi_dynamic_partitions_a --image system_dlkm_a={TempDIR}/system_dlkm_a.img ")
+    param.append(f"--partition system_dlkm_b:readonly:0:xiaomi_dynamic_partitions_b ") #4
+    param.append(f"--partition system_ext_a:readonly:{os.path.getsize(os.path.join(TempDIR , 'system_ext_a.img'))}:xiaomi_dynamic_partitions_a --image system_ext_a={TempDIR}/system_ext_a.img ")
+    param.append(f"--partition system_ext_b:readonly:0:xiaomi_dynamic_partitions_b ") #5
+    param.append(f"--partition vendor_a:readonly:{os.path.getsize(os.path.join(TempDIR , 'vendor_a.img'))}:xiaomi_dynamic_partitions_a --image vendor_a={TempDIR}/vendor_a.img ")
+    param.append(f"--partition vendor_b:readonly:0:xiaomi_dynamic_partitions_b ") #6
+    param.append(f"--partition vendor_dlkm_a:readonly:{os.path.getsize(os.path.join(TempDIR , 'vendor_dlkm_a.img'))}:xiaomi_dynamic_partitions_a --image vendor_dlkm_a={TempDIR}/vendor_dlkm_a.img ")
+    param.append(f"--partition vendor_dlkm_b:readonly:0:xiaomi_dynamic_partitions_b ") #7
+    param.append(f"--partition mi_ext_a:readonly:{os.path.getsize(os.path.join(TempDIR , 'mi_ext_a.img'))}:xiaomi_dynamic_partitions_a --image mi_ext_a={TempDIR}/mi_ext_a.img ")
+    param.append(f"--partition mi_ext_b:readonly:0:xiaomi_dynamic_partitions_b ") #8 
+    param.append(f"--output {sys.argv[2]} ")
     my_thread = threading.Thread(target=printsize)
     my_thread.daemon = True
     my_thread.start()
-    err = os.system(makep)
-    print("done !!!")
-    sys.exit(err)
+    while True:
+        try:
+            os.system(makep)
+            print("done !!!")
+            sys.exit()
+        except:
+            a = input("do you want to shuffle ? (Y/n): ")
+            if a == "Y" or a == "y" or a == "yes" or a == "Yes" or a == "":
+                random.shuffle(param)
+                continue
+            else:
+                sys.exit()
 def IMGmanipulation(): # choose an img file to be replaced
     while (True):
         TempImgList = os.listdir(TempDIR)
