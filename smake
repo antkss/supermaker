@@ -131,12 +131,19 @@ def lpmake_xiaomi_super():
     param.append(f"--partition mi_ext_a:readonly:{os.path.getsize(os.path.join(TempDIR , 'mi_ext_a.img'))}:xiaomi_dynamic_partitions_a --image mi_ext_a={TempDIR}/mi_ext_a.img ")
     param.append(f"--partition mi_ext_b:readonly:0:xiaomi_dynamic_partitions_b ") #8 
     param.append(f"--output {sys.argv[2]} ")
+    a = makep
+    for p in param:
+        a += p
+    print("command: ", a)
     my_thread = threading.Thread(target=printsize)
     my_thread.daemon = True
     my_thread.start()
     while True:
         try:
-            os.system(makep)
+            a = makep
+            for p in param:
+                a+=p
+            os.system(a)
             print("done !!!")
             sys.exit()
         except:
