@@ -86,8 +86,10 @@ def lpmake_xiaomi_super():
         shutil.copy(re_src[i] , re_dest[i])
     metadatasize = 65536
     devicesize = IMGsizeCALC()
+    print("devicesize: ",devicesize)
     filesize = devicesize
     print("============================")
+    print("my super device size: 7434821648")
     try:
         dvsize = input("file size (super.img size) in bytes must be evenly divisible by 512, default ({devicesize}) bytes: ".format(devicesize=devicesize))
         if dvsize != "" and testdvi512(int(dvsize)):
@@ -102,7 +104,7 @@ def lpmake_xiaomi_super():
     except ValueError:
         print("Invalid Number skipping ..!")
     
-    makep = f"{HERE}/bin/lpmake "
+    makep = f"lpmake "
     makep+= f"--metadata-size {metadatasize} "
     makep+= f"--super-name super --metadata-slots 1 --virtual-ab "
     makep+= f"--device super:{filesize} "
@@ -301,6 +303,8 @@ def main():
     metadatasize = 65536
     devicesize = IMGsizeCALC()
     filesize = IMGsizeCALC()
+    print("devicesize: ",devicesize)
+    print("my super device size: 7434821648")
     print("============================")
     try:
         dvsize = input("file size (super.img size) in bytes must be evenly divisible by 512, default ({devicesize}) bytes: ".format(devicesize=devicesize))
