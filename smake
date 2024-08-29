@@ -147,7 +147,10 @@ def lpmake_xiaomi_super():
             print("done !!!")
             sys.exit()
         except:
-            a = input("do you want to shuffle ? (Y/n): \n")
+            if os.path.isfile(sys.argv[2]):
+                print("done !!")
+                sys.exit()
+            a = input("do you want to shuffle ? (Y/n): ")
             if a == "Y" or a == "y" or a == "yes" or a == "Yes" or a == "":
                 random.shuffle(param)
                 continue
