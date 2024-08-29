@@ -152,6 +152,7 @@ def lpmake_xiaomi_super():
                 random.shuffle(param)
                 continue
             else:
+                print("done !!")
                 sys.exit()
 def IMGmanipulation(): # choose an img file to be replaced
     while (True):
@@ -341,4 +342,4 @@ def main():
     sys.exit(err)
 
 main()
-signal.pause()
+print("done")
