@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+from os.path import exists
 import shutil
 import pathlib
 import signal
@@ -105,46 +106,34 @@ def lpmake_xiaomi_super():
     except ValueError:
         print("Invalid Number skipping ..!")
     
-    param = []
-    makep = f"lpmake "
-    makep+= f"--metadata-size {metadatasize} "
-    makep+= f"--super-name super --metadata-slots 2 -a 0"
-    makep+= f"--device super:{filesize} "
-    # makep+= f"--group xiaomi_dynamic_partitions_a:{filesize} "
-    # makep+= f"--group xiaomi_dynamic_partitions_b:{filesize} "
-    makep+= f"--group main:{filesize}"
-
-    param.append(f"--partition odm_a:readonly:{os.path.getsize(os.path.join(TempDIR , 'odm_a.img'))}:xiaomi_dynamic_partitions_a --image odm_a={TempDIR}/odm_a.img ")
-    param.append(f"--partition odm_b:readonly:0:xiaomi_dynamic_partitions_b ") #1
-
-    param.append(f"--partition product_a:readonly:{os.path.getsize(os.path.join(TempDIR , 'product_a.img'))}:xiaomi_dynamic_partitions_a --image product_a={TempDIR}/product_a.img ")
-    param.append(f"--partition product_b:readonly:0:xiaomi_dynamic_partitions_b ") #2
-    param.append(f"--partition system_a:readonly:{os.path.getsize(os.path.join(TempDIR , 'system_a.img'))}:xiaomi_dynamic_partitions_a --image system_a={TempDIR}/system_a.img ")
-    param.append(f"--partition system_b:readonly:0:xiaomi_dynamic_partitions_b ") #3
-    param.append(f"--partition system_dlkm_a:readonly:{os.path.getsize(os.path.join(TempDIR , 'system_dlkm_a.img'))}:xiaomi_dynamic_partitions_a --image system_dlkm_a={TempDIR}/system_dlkm_a.img ")
-    param.append(f"--partition system_dlkm_b:readonly:0:xiaomi_dynamic_partitions_b ") #4
-    param.append(f"--partition system_ext_a:readonly:{os.path.getsize(os.path.join(TempDIR , 'system_ext_a.img'))}:xiaomi_dynamic_partitions_a --image system_ext_a={TempDIR}/system_ext_a.img ")
-    param.append(f"--partition system_ext_b:readonly:0:xiaomi_dynamic_partitions_b ") #5
-    param.append(f"--partition vendor_a:readonly:{os.path.getsize(os.path.join(TempDIR , 'vendor_a.img'))}:xiaomi_dynamic_partitions_a --image vendor_a={TempDIR}/vendor_a.img ")
-    param.append(f"--partition vendor_b:readonly:0:xiaomi_dynamic_partitions_b ") #6
-    param.append(f"--partition vendor_dlkm_a:readonly:{os.path.getsize(os.path.join(TempDIR , 'vendor_dlkm_a.img'))}:xiaomi_dynamic_partitions_a --image vendor_dlkm_a={TempDIR}/vendor_dlkm_a.img ")
-    param.append(f"--partition vendor_dlkm_b:readonly:0:xiaomi_dynamic_partitions_b ") #7
-    param.append(f"--partition mi_ext_a:readonly:{os.path.getsize(os.path.join(TempDIR , 'mi_ext_a.img'))}:xiaomi_dynamic_partitions_a --image mi_ext_a={TempDIR}/mi_ext_a.img ")
-    param.append(f"--partition mi_ext_b:readonly:0:xiaomi_dynamic_partitions_b ") #8 
-    param.append(f"--output {sys.argv[2]} ")
-    a = makep
-    for p in param:
-        a += p
-    print("command: ", a)
-    my_thread = threading.Thread(target=printsize)
-    my_thread.daemon = True
-    my_thread.start()
+    partitions = ['odm', 'product', 'system', 'system_dlkm', 'system_ext', 'vendor', 'vendor_dlkm', 'mi_ext']
     while True:
         try:
-            a = makep
-            for p in param:
-                a+=p
-            os.system(a)
+            makep = f"lpmake "
+            makep+= f"--metadata-size {metadatasize} "
+            makep+= f"--super-name super --metadata-slots 2 "
+            makep+= f"--device super:{filesize} "
+            # makep+= f"--group main:{filesize} "
+            # makep+= f"--group main:{filesize} "
+            makep+= f"--group main:{IMGsizeCALC()} "
+
+
+            for item in partitions:
+                if not os.path.exists(os.path.join(TempDIR,f'{item}_a.img')):
+                    warn = input(f"missing {item}_a.img, continue ? (Y/n): ")
+                    if warn == "Y" or warn == "y" or warn == "yes" or warn == "Yes" or warn == "":
+                        partitions.remove(item)
+                        continue
+                    else:
+                        return
+                makep+=f"--partition {item}_a:readonly:{os.path.getsize(os.path.join(TempDIR , f'{item}_a.img'))}:main --image {item}_a={TempDIR}/{item}_a.img "
+                makep+=f"--partition {item}_b:readonly:0:main " #1
+            makep+=f"--output {sys.argv[2]} "
+            print("command: ", makep)
+            my_thread = threading.Thread(target=printsize)
+            my_thread.daemon = True
+            my_thread.start()
+            os.system(makep)
             print("done !!!")
             sys.exit()
         except:
@@ -153,7 +142,7 @@ def lpmake_xiaomi_super():
                 sys.exit()
             a = input("do you want to shuffle ? (Y/n): ")
             if a == "Y" or a == "y" or a == "yes" or a == "Yes" or a == "":
-                random.shuffle(param)
+                random.shuffle(partitions)
                 continue
             else:
                 print("done !!")
