@@ -108,10 +108,11 @@ def lpmake_xiaomi_super():
     param = []
     makep = f"lpmake "
     makep+= f"--metadata-size {metadatasize} "
-    makep+= f"--super-name super --metadata-slots 1 --virtual-ab "
+    makep+= f"--super-name super --metadata-slots 2 -a 0"
     makep+= f"--device super:{filesize} "
-    makep+= f"--group xiaomi_dynamic_partitions_a:{filesize} "
-    makep+= f"--group xiaomi_dynamic_partitions_b:{filesize} "
+    # makep+= f"--group xiaomi_dynamic_partitions_a:{filesize} "
+    # makep+= f"--group xiaomi_dynamic_partitions_b:{filesize} "
+    makep+= f"--group main:{filesize}"
 
     param.append(f"--partition odm_a:readonly:{os.path.getsize(os.path.join(TempDIR , 'odm_a.img'))}:xiaomi_dynamic_partitions_a --image odm_a={TempDIR}/odm_a.img ")
     param.append(f"--partition odm_b:readonly:0:xiaomi_dynamic_partitions_b ") #1
