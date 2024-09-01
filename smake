@@ -314,7 +314,7 @@ def main():
     try:
         dvsize = input("file size (super.img size) in bytes must be evenly divisible by 512, default ({devicesize}) bytes: ".format(devicesize=devicesize))
         if dvsize != "" and testdvi512(int(dvsize)):
-            filesize = int(dvsize)
+            devicesize = int(dvsize)
     except ValueError:
         print("Invalid Number skipping ..!")
     
