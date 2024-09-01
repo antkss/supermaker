@@ -91,17 +91,17 @@ def lpmake_xiaomi_super():
     print("devicesize: ",devicesize)
     filesize = devicesize
     print("============================")
-    print("my super device size: 7434821648")
+    print("my super device size: 7516192768")
     try:
         dvsize = input("file size (super.img size) in bytes must be evenly divisible by 512, default ({devicesize}) bytes: ".format(devicesize=devicesize))
         if dvsize != "" and testdvi512(int(dvsize)):
-            filesize = int(dvsize)
+            devicesize = int(dvsize)
     except ValueError:
         print("Invalid Number skipping ..!")
     
     try:
         mdsize = input("metadata size in bytes must be evenly divisible by 512 default={metadatasize}bytes: ".format(metadatasize=metadatasize))
-        if mdsize != "" and testdvi512(int(dvsize)):
+        if mdsize != "" and testdvi512(int(mdsize)):
             metadatasize = int(mdsize)
     except ValueError:
         print("Invalid Number skipping ..!")
@@ -112,7 +112,7 @@ def lpmake_xiaomi_super():
             makep = f"lpmake "
             makep+= f"--metadata-size {metadatasize} "
             makep+= f"--super-name super --metadata-slots 2 "
-            makep+= f"--device super:{filesize} "
+            makep+= f"--device super:{devicesize} "
             # makep+= f"--group main:{filesize} "
             # makep+= f"--group main:{filesize} "
             makep+= f"--group main:{IMGsizeCALC()} "
@@ -309,7 +309,7 @@ def main():
     devicesize = IMGsizeCALC()
     filesize = IMGsizeCALC()
     print("devicesize: ",devicesize)
-    print("my super device size: 7434821648")
+    print("my super device size: 7516192768")
     print("============================")
     try:
         dvsize = input("file size (super.img size) in bytes must be evenly divisible by 512, default ({devicesize}) bytes: ".format(devicesize=devicesize))
@@ -320,7 +320,7 @@ def main():
     
     try:
         mdsize = input(f"metadata size in bytes must be evenly divisible by 512 default={metadatasize}: ")
-        if mdsize != "" and testdvi512(int(dvsize)):
+        if mdsize != "" and testdvi512(int(mdsize)):
             metadatasize = int(mdsize)
     except ValueError:
         print("Invalid Number skipping ..!")
