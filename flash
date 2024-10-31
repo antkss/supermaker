@@ -1,11 +1,43 @@
 #!/usr/bin/python3
 import os
 import subprocess
+import time
+file_list = [
+    "vbmeta_system.img",
+    "vbmeta.img",
+    "devcfg.img",
+    "xbl_config.img",
+    "qupfw.img",
+    "featenabler.img",
+    "uefisecapp.img",
+    "rpm.img",
+    "abl.img",
+    "keymaster.img",
+    "hyp.img",
+    "bluetooth.img",
+    "countrycode.img",
+    "imagefv.img",
+    "tz.img",
+    "xbl.img",
+    "dtbo.img",
+    "init_boot.img",
+    "dsp.img",
+    "vendor_boot.img",
+    "boot.img",
+    "modem.img",
+    "cust.img"
+]
+def system(cmd):
+    return subprocess.check_output(cmd,shell=True)
 files = subprocess.check_output("ls | grep '.img'",shell=True).split()
-for i in range(len(files)):
-    files[i] = files[i][:-4].decode()
-for item in files:
-    if item in "super.img":
+file_list  = files
+file_sizes = [(file.decode(), os.path.getsize(file)) for file in file_list if os.path.exists(file)]
+file_sizes.sort(key=lambda x: x[1])
+# for file,size in file_sizes:
+#     print(f"{file} {size}")
+blacklist = ["super.img"]
+for file,size in file_sizes:
+    if file in blacklist:
         continue
-    os.system(f"fastboot flash {item} {item}.img")
-os.system(f"fastboot flash super super.img")
+    system(f"fastboot flash {file[:-4]} {file}")
+# # os.system(f"fastboot flash super super.img")
