@@ -1,0 +1,11 @@
+#!/usr/bin/python3
+import os
+import subprocess
+files = subprocess.check_output("ls | grep '.img'",shell=True).split()
+for i in range(len(files)):
+    files[i] = files[i][:-4].decode()
+for item in files:
+    if item in "super.img":
+        continue
+    os.system(f"fastboot flash {item} {item}.img")
+os.system(f"fastboot flash super super.img")
