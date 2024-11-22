@@ -1,0 +1,14 @@
+#!/usr/bin/python3
+
+import sys
+if len(sys.argv) !=2:
+    print("create struct: ")
+    print(f"usage: {sys.argv[0]} <number of bytes>")
+    exit()
+numofbytes = int(sys.argv[1])
+struct = "struct lmao{\n"
+for i in range(numofbytes):
+    struct += f"    char lmao{i};\n"
+struct += "};"
+file = open("struct.c","w")
+file.write(struct)
