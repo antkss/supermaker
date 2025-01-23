@@ -1,0 +1,21 @@
+#!/usr/bin/bash
+java -jar revanced-cli-5.0.0-all.jar patch youtube.apk -p patches.rvp \
+	--di 201 \
+	--di 190 \
+	--di 198 \
+	--di 197 \
+	--di 5 \
+	--di 181 \
+	--di 191 \
+	--di 27 \
+	--di 158 \
+	--di 157 \
+	--di 180 \
+	--di 150 \
+	--di 152 \
+	--di 148 \
+	--di 149 \
+	--di 177 \
+	--di 199 \
+	--di 176 \
+	--ei 200
